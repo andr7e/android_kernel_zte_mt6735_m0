@@ -65,7 +65,7 @@
 		compatible = "mediatek,kx023";
 		i2c_num	= <2>;
 		i2c_addr = <0x1f 0 0 0>;
-		direction = <7>;
+		direction = <1>;
 		power_id = <0xffff>;
 		power_vol = <0>;
 		firlen = <0>;
@@ -108,8 +108,8 @@
 	cust_mag@0 {
 		compatible				= "mediatek,af7133E";
 		i2c_num					= <2>;
-		i2c_addr				= <0x1C 0 0 0>;
-		direction				= <4>;
+		i2c_addr				= <0x1B 0 0 0>;
+		direction				= <3>;
 		power_id				= <0xffff>;
 		power_vol				= <0>;
 		is_batch_supported		= <0>;
