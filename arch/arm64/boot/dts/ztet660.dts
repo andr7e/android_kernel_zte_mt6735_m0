@@ -197,13 +197,13 @@
 
 &aeon_pins_flash_enm0_gpio {
 	pins_cmd_dat {
-		pins = <PINMUX_GPIO21__FUNC_GPIO21>;
+		pins = <PINMUX_GPIO43__FUNC_GPIO21>;
 	};
 };
 
 &aeon_pins_flash_enm1_gpio {
 	pins_cmd_dat {
-		pins = <PINMUX_GPIO21__FUNC_GPIO21>;
+		pins = <PINMUX_GPIO43__FUNC_GPIO21>;
 	};
 };
 
