@@ -56,6 +56,9 @@ LCM_DRIVER *lcm_driver_list[] = {
         &otm1287a_hd720_dsi_vdo_e520_v511_lide_lcm_drv,
 #endif
 
+#if defined(OTM1287A_720P_DSI_DJ)
+	&otm1287a_720p_dsi_dj_lcm_drv,
+#endif
 
 #ifdef AEON_FACTORY_MODULE
 #if defined(AEON_FACTORY_LCM)  //Don't modify !!

@@ -28,6 +28,8 @@ extern LCM_DRIVER aeon_factory_lcm_lcm_drv;
 
 //E539
 extern LCM_DRIVER otm1287a_hd720_dsi_vdo_e539_l521_ld_lcm_drv;
+
+extern LCM_DRIVER otm1287a_720p_dsi_dj_lcm_drv;
 /* ================================eastaeon==================================== */
 
 #endif

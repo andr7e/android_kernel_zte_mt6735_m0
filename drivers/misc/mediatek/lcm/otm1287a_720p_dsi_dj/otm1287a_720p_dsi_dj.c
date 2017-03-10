@@ -24,7 +24,7 @@
 
 #define _LCM_DEBUG_
 
-#include <cust_gpio_usage.h>
+//#include <cust_gpio_usage.h>
 
 //extern void rmidev_reset(void);
 
@@ -97,8 +97,9 @@ static LCM_UTIL_FUNCS lcm_util = {0};
 #define read_reg											lcm_util.dsi_read_reg()
 #define read_reg_v2(cmd, buffer, buffer_size)   			lcm_util.dsi_dcs_read_lcm_reg_v2(cmd, buffer, buffer_size)    
        
+extern unsigned int aeon_gpio_get(const char *name);
 
-static struct LCM_setting_table {
+struct LCM_setting_table {
     unsigned cmd;
     unsigned char count;
     unsigned char para_list[64];
@@ -308,12 +309,13 @@ static struct LCM_setting_table lcm_initialization_setting[] = {
 	{0x35,1, {0x00}},  
 };
 
+/*
 static struct LCM_setting_table lcm_set_window[] = {
 	{0x2A,	4,	{0x00, 0x00, (FRAME_WIDTH>>8), (FRAME_WIDTH&0xFF)}},
 	{0x2B,	4,	{0x00, 0x00, (FRAME_HEIGHT>>8), (FRAME_HEIGHT&0xFF)}},
 	{REGFLAG_END_OF_TABLE, 0x00, {}}
 };
-
+*/
 
 static struct LCM_setting_table lcm_sleep_out_setting[] = {
     // Sleep Out
@@ -495,7 +497,8 @@ static unsigned int lcm_compare_id(void)
 	MDELAY(20);
 	read_reg_v2(0xA1, buffer, 2);
 	
-	gpio = mt_get_gpio_in(GPIO_DISP_ID0_PIN);
+	//gpio = mt_get_gpio_in(GPIO_DISP_ID0_PIN);
+	gpio = aeon_gpio_get("aeon_lcd_id1");
 
 	id = buffer[1]; //we only need ID
 	LCM_PRINT("%s,  id otm1287A= 0x%08x\n", __func__, buffer[0]);
@@ -554,6 +557,7 @@ static void lcm_resume(void)
 //	rmidev_reset();
 }
 
+/*
 static void lcm_update(unsigned int x, unsigned int y,
                        unsigned int width, unsigned int height)
 {
@@ -585,8 +589,8 @@ static void lcm_update(unsigned int x, unsigned int y,
 	data_array[8]= 0x002c3909;
 
 	dsi_set_cmdq(&data_array, 9, 0);
-
 }
+*/ 
 
 LCM_DRIVER otm1287a_720p_dsi_dj_lcm_drv = 
 {
