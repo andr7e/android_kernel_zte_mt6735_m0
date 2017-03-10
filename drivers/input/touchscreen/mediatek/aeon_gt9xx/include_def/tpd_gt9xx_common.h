@@ -94,9 +94,81 @@ extern s32 gup_load_hotknot_system(void);
 extern unsigned char gtp_default_FW[];
 extern unsigned char gtp_default_FW_fl[];
 
+/* ***************************PART1:ON/OFF define******************************* */
+/*
+#define GTP_CUSTOM_CFG        0
+#define GTP_DRIVER_SEND_CFG   1       //driver send config to TP on intilization (for no config built in TP flash)
+#define GTP_HAVE_TOUCH_KEY    0
+#define GTP_POWER_CTRL_SLEEP  1       //turn off power on suspend
+#define GTP_AUTO_UPDATE       1       //update FW to TP FLASH
+#define GTP_CHANGE_X2Y        0				//set for se1
+#define GTP_HEADER_FW_UPDATE  1
+#define GTP_AUTO_UPDATE_CFG   0       // auto update config by .cfg file, function together with GTP_AUTO_UPDATE
+
+#define GTP_SUPPORT_I2C_DMA   0       // if gt9xxf, better enable it if hardware platform supported
+#define GTP_COMPATIBLE_MODE   1       // compatible with GT9XXF
+
+#define GTP_CREATE_WR_NODE    1
+#define GTP_ESD_PROTECT       0       // esd protection with a cycle of 2 seconds
+#define GUP_USE_HEADER_FILE   0
+#define GTP_FW_DOWNLOAD       0       //update FW to TP SRAM
+//#define GTP_CHARGER_DETECT
+
+#define GTP_CONFIG_MIN_LENGTH       186
+#define GTP_CONFIG_MAX_LENGTH       240
+#define GTP_CHARGER_SWITCH    0       // charger plugin & plugout detect
+#define GTP_WITH_PEN          0
+#define GTP_SLIDE_WAKEUP      0
+#define GTP_DBL_CLK_WAKEUP    0       // double-click wakup, function together with GTP_SLIDE_WAKEUP
+#define HOTKNOT_BLOCK_RW      0
+
+//#define TPD_PROXIMITY
+//#define TPD_HAVE_BUTTON               //report key as coordinate,Vibration feedback
+//#define TPD_WARP_X
+//#define TPD_WARP_Y
+
+#define GTP_DEBUG_ON          0
+#define GTP_DEBUG_ARRAY_ON    0
+#define GTP_DEBUG_FUNC_ON     0
+*/
 #define CFG_GROUP_LEN(p_cfg_grp)  (sizeof(p_cfg_grp) / sizeof(p_cfg_grp[0]))
 #define FLASHLESS_FLASH_WORKROUND  0
 
+/* STEP_2(REQUIRED):Change I/O define & I/O operation mode. */
+/*
+#define GTP_RST_PORT    GPIO_CTP_RST_PIN
+#define GTP_INT_PORT    GPIO_CTP_EINT_PIN
+*/
+/*
+#define GTP_GPIO_AS_INPUT(pin)          do{\
+					    if(pin == GPIO_CTP_EINT_PIN)\
+						mt_set_gpio_mode(pin, GPIO_CTP_EINT_PIN_M_GPIO);\
+					    else\
+						mt_set_gpio_mode(pin, GPIO_CTP_RST_PIN_M_GPIO);\
+					    mt_set_gpio_dir(pin, GPIO_DIR_IN);\
+					    mt_set_gpio_pull_enable(pin, GPIO_PULL_DISABLE);\
+					}while(0)
+#define GTP_GPIO_AS_INT(pin)            do{\
+					    mt_set_gpio_mode(pin, GPIO_CTP_EINT_PIN_M_EINT);\
+					    mt_set_gpio_dir(pin, GPIO_DIR_IN);\
+					    mt_set_gpio_pull_enable(pin, GPIO_PULL_DISABLE);\
+					}while(0)
+#define GTP_GPIO_GET_VALUE(pin)         mt_get_gpio_in(pin)
+#define GTP_GPIO_OUTPUT(pin,level)      do{\
+					    if(pin == GPIO_CTP_EINT_PIN)\
+						mt_set_gpio_mode(pin, GPIO_CTP_EINT_PIN_M_GPIO);\
+					    else\
+						mt_set_gpio_mode(pin, GPIO_CTP_RST_PIN_M_GPIO);\
+					    mt_set_gpio_dir(pin, GPIO_DIR_OUT);\
+					    mt_set_gpio_out(pin, level);\
+					}while(0)
+#define GTP_GPIO_REQUEST(pin, label)    gpio_request(pin, label)
+#define GTP_GPIO_FREE(pin)              gpio_free(pin)
+#define GTP_IRQ_TAB	{IRQ_TYPE_EDGE_RISING, \
+					IRQ_TYPE_EDGE_FALLING, \
+					IRQ_TYPE_LEVEL_LOW, \
+					IRQ_TYPE_LEVEL_HIGH}
+*/
 
 /* STEP_3(optional):Custom set some config by themself,if need. */
 #if defined(CONFIG_GTP_CUSTOM_CFG)
@@ -192,7 +264,7 @@ enum CHIP_TYPE_T {
 #define GTP_DMA_MAX_I2C_TRANSFER_SIZE   (GTP_DMA_MAX_TRANSACTION_LENGTH - GTP_ADDR_LENGTH)
 #define MAX_TRANSACTION_LENGTH        8
 #define TPD_I2C_NUMBER				  1
-#define I2C_MASTER_CLOCK              200
+#define I2C_MASTER_CLOCK              300
 #define MAX_I2C_TRANSFER_SIZE         (MAX_TRANSACTION_LENGTH - GTP_ADDR_LENGTH)
 #define TPD_MAX_RESET_COUNT           3
 
