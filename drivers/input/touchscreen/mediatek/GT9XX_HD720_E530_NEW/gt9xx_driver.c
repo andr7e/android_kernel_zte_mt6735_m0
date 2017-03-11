@@ -42,8 +42,6 @@ static int tpd_polling_time = 50;
 
 static DECLARE_WAIT_QUEUE_HEAD(waiter);
 DEFINE_MUTEX(i2c_access);
-unsigned int tpd_rst_gpio_number = 0;
-unsigned int tpd_int_gpio_number = 0;
 
 #ifdef TPD_HAVE_BUTTON
 static int tpd_keys_local[TPD_KEY_COUNT] = TPD_KEYS;
@@ -88,7 +86,7 @@ static u8 *gpDMABuf_va;
 static u32 gpDMABuf_pa;
 #endif
 
-static irqreturn_t tpd_interrupt_handler(int irq, void *dev_id);
+static irqreturn_t tpd_eint_interrupt_handler(void);
 static int touch_event_handler(void *unused);
 static int tpd_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id);
 static int tpd_i2c_detect(struct i2c_client *client, struct i2c_board_info *info);
@@ -151,39 +149,7 @@ static struct i2c_driver tpd_i2c_driver = {
 	.id_table = tpd_i2c_id,
 	.address_list = (const unsigned short *) forces,
 };
-#ifdef CONFIG_OF
-static int of_get_gt9xx_platform_data(struct device *dev)
-{
-	/*int ret, num;*/
 
-	if (dev->of_node) {
-		const struct of_device_id *match;
-
-		match = of_match_device(of_match_ptr(gt9xx_dt_match), dev);
-		if (!match) {
-			GTP_ERROR("Error: No device match found\n");
-			return -ENODEV;
-		}
-	}
-	tpd_rst_gpio_number = of_get_named_gpio(dev->of_node, "rst-gpio", 0);
-	tpd_int_gpio_number = of_get_named_gpio(dev->of_node, "int-gpio", 0);
-	/*ret = of_property_read_u32(dev->of_node, "rst-gpio", &num);
-	if (!ret)
-		tpd_rst_gpio_number = num;
-	ret = of_property_read_u32(dev->of_node, "int-gpio", &num);
-	if (!ret)
-		tpd_int_gpio_number = num;
-	*/
-	GTP_ERROR("g_vproc_en_gpio_number %d\n", tpd_rst_gpio_number);
-	GTP_ERROR("g_vproc_vsel_gpio_number %d\n", tpd_int_gpio_number);
-	return 0;
-}
-#else
-static int of_get_gt9xx_platform_data(struct device *dev)
-{
-	return 0;
-}
-#endif
 static u8 config[GTP_CONFIG_MAX_LENGTH + GTP_ADDR_LENGTH]
 	= {GTP_REG_CONFIG_DATA >> 8, GTP_REG_CONFIG_DATA & 0xff};
 #ifdef CONFIG_GTP_CHARGER_SWITCH
@@ -1299,22 +1265,22 @@ Note:
 *******************************************************/
 void gtp_int_sync(s32 ms)
 {
-	gpio_direction_output(tpd_int_gpio_number, 0);
+	tpd_gpio_output(GTP_INT_PORT, 0);
 	msleep(ms);
-	gpio_direction_input(tpd_int_gpio_number);
+	tpd_gpio_as_int(GTP_INT_PORT);
 }
 
 void gtp_reset_guitar(struct i2c_client *client, s32 ms)
 {
 	GTP_INFO("GTP RESET!\n");
-	gpio_direction_output(tpd_rst_gpio_number, 0);
+	tpd_gpio_output(GTP_RST_PORT, 0);
 	msleep(ms);
-	gpio_direction_output(tpd_int_gpio_number, client->addr == 0x14);
+	tpd_gpio_output(GTP_INT_PORT, client->addr == 0x14);
 
-	msleep(20);
-	gpio_direction_output(tpd_rst_gpio_number, 1);
+	msleep(2);
+	tpd_gpio_output(GTP_RST_PORT, 1);
 
-	msleep(20);/* must >= 6ms */
+	msleep(6);/* must >= 6ms */
 
 #ifdef CONFIG_GTP_COMPATIBLE_MODE
 	if (CHIP_TYPE_GT9F == gtp_chip_type)
@@ -1333,9 +1299,9 @@ static int tpd_power_on(struct i2c_client *client)
 		int reset_count = 0;
 
 reset_proc:
-	gpio_direction_output(tpd_int_gpio_number, 0);
-	gpio_direction_output(tpd_rst_gpio_number, 0);
-	msleep(20);
+	tpd_gpio_output(GTP_RST_PORT, 0);
+	tpd_gpio_output(GTP_INT_PORT, 0);
+	msleep(10);
 
 	/* power on, need confirm with SA */
 	GTP_ERROR("turn on power reg-vgp6\n");
@@ -1690,39 +1656,12 @@ static const struct file_operations gt_upgrade_proc_fops = {
 		.write = gt91xx_config_write_proc,
 		.read = gt91xx_config_read_proc
 };
-static int tpd_irq_registration(void)
-{
-	struct device_node *node = NULL;
-	int ret = 0;
-
-	node = of_find_compatible_node(NULL, NULL, "mediatek,cap_touch");
-	if (node) {
-		/*touch_irq = gpio_to_irq(tpd_int_gpio_number);*/
-		touch_irq = irq_of_parse_and_map(node, 0);
-
-		if (!int_type) {/* EINTF_TRIGGER */
-			ret =
-					request_irq(touch_irq, tpd_interrupt_handler, IRQF_TRIGGER_RISING,
-					TPD_DEVICE, NULL);
-			if (ret > 0)
-				GTP_ERROR("tpd request_irq IRQ LINE NOT AVAILABLE!.");
-		} else {
-			ret =
-					request_irq(touch_irq, tpd_interrupt_handler,
-					IRQF_TRIGGER_FALLING, TPD_DEVICE, NULL);
-			if (ret > 0)
-				GTP_ERROR("tpd request_irq IRQ LINE NOT AVAILABLE!.");
-		}
-	} else {
-		GTP_ERROR("[%s] tpd request_irq can not find touch eint device node!.", __func__);
-	}
-	return 0;
-}
 
 static s32 tpd_i2c_probe(struct i2c_client *client, const struct i2c_device_id *id)
 {
 		s32 err = 0;
 		s32 ret = 0;
+		struct device_node *node;
 
 		u16 version_info;
 		s32 idx = 0;
@@ -1731,22 +1670,6 @@ static s32 tpd_i2c_probe(struct i2c_client *client, const struct i2c_device_id *
 		struct hwmsen_object obj_ps;
 #endif
 
-	of_get_gt9xx_platform_data(&client->dev);
-
-	/* configure the gpio pins */
-	ret = gpio_request_one(tpd_rst_gpio_number, GPIOF_OUT_INIT_LOW,
-				 "touchp_reset");
-	if (ret < 0) {
-		GTP_ERROR("Unable to request gpio reset_pin\n");
-		return -1;
-	}
-	ret = gpio_request_one(tpd_int_gpio_number, GPIOF_IN,
-				 "tpd_int");
-	if (ret < 0) {
-		GTP_ERROR("Unable to request gpio int_pin\n");
-		gpio_free(tpd_rst_gpio_number);
-		return -1;
-	}
 		i2c_client_point = client;
 		ret = tpd_power_on(client);
 
@@ -1822,10 +1745,25 @@ static s32 tpd_i2c_probe(struct i2c_client *client, const struct i2c_device_id *
 		/* __set_bit(INPUT_PROP_POINTER, tpd->dev->propbit); // 20130722 */
 #endif
 
-		msleep(50);
+	tpd_gpio_as_int(GTP_INT_PORT);
+		
+	msleep(50);
 
-	tpd_irq_registration();
-	/*enable_irq(touch_irq);*/
+	node = of_find_matching_node(NULL, touch_of_match);
+	if (node) {
+		touch_irq = irq_of_parse_and_map(node, 0);
+		ret = request_irq(touch_irq,
+				  (irq_handler_t)tpd_eint_interrupt_handler,
+				  !int_type ? IRQF_TRIGGER_RISING :
+				  IRQF_TRIGGER_FALLING,
+				  "TOUCH_PANEL-eint", NULL);
+		if (ret > 0) {
+			ret = -1;
+			GTP_ERROR("tpd request_irq IRQ LINE NOT AVAILABLE!.");
+		}
+	}
+	/* mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM); */
+	enable_irq(touch_irq);
 
 
 #ifdef CONFIG_GTP_ESD_PROTECT
@@ -1853,12 +1791,11 @@ static s32 tpd_i2c_probe(struct i2c_client *client, const struct i2c_device_id *
 	GTP_INFO("%s, success run Done", __func__);
 	return 0;
 out:
-	gpio_free(tpd_rst_gpio_number);
-	gpio_free(tpd_int_gpio_number);
-	return -1;
+	tpd_load_status = 0;
+	return -EIO;
 }
 
-static irqreturn_t tpd_interrupt_handler(int irq, void *dev_id)
+static irqreturn_t tpd_eint_interrupt_handler(void)
 {
 	TPD_DEBUG_PRINT_INT;
 	tpd_flag = 1;
@@ -1875,8 +1812,6 @@ static int tpd_i2c_remove(struct i2c_client *client)
 		destroy_workqueue(gtp_esd_check_workqueue);
 #endif
 
-	gpio_free(tpd_rst_gpio_number);
-	gpio_free(tpd_int_gpio_number);
 		return 0;
 }
 #if (defined(CONFIG_GTP_ESD_PROTECT) || defined(CONFIG_GTP_COMPATIBLE_MODE))
@@ -1893,8 +1828,9 @@ void force_reset_guitar(void)
 	gtp_resetting = 1;
 	disable_irq(touch_irq);
 
-		gpio_direction_output(tpd_rst_gpio_number, 0);
-		gpio_direction_output(tpd_int_gpio_number, 0);
+	tpd_gpio_output(GTP_RST_PORT, 0);
+	tpd_gpio_output(GTP_INT_PORT, 0);
+
 		/* Power off TP */
 	ret = regulator_disable(tpd->reg);
 	if (ret != 0)
@@ -2708,7 +2644,10 @@ static s8 gtp_enter_sleep(struct i2c_client *client)
 #endif
 
 #ifdef CONFIG_GTP_POWER_CTRL_SLEEP
-	gpio_direction_output(tpd_rst_gpio_number, 0);
+
+	tpd_gpio_output(GTP_RST_PORT, 0);
+	tpd_gpio_output(GTP_INT_PORT, 0);
+
 	msleep(30);
 
 	ret = regulator_disable(tpd->reg);
@@ -2723,7 +2662,8 @@ static s8 gtp_enter_sleep(struct i2c_client *client)
 		s8 retry = 0;
 		u8 i2c_control_buf[3] = {(u8)(GTP_REG_SLEEP >> 8), (u8)GTP_REG_SLEEP, 5};
 
-		gpio_direction_output(tpd_int_gpio_number, 0);
+		tpd_gpio_output(GTP_INT_PORT, 0);
+
 		msleep(5);
 
 		while (retry++ < 5) {
@@ -2787,7 +2727,7 @@ static s8 gtp_wakeup_sleep(struct i2c_client *client)
 		u8 opr_buf[2] = {0};
 
 		while (retry++ < 10) {
-			gpio_direction_output(tpd_int_gpio_number, 1);
+			tpd_gpio_output(GTP_INT_PORT, 1);
 			msleep(5);
 
 			ret = gtp_i2c_test(client);
@@ -2848,7 +2788,7 @@ static s8 gtp_wakeup_sleep(struct i2c_client *client)
 		enable_irq(touch_irq);
 #else
 
-		gpio_direction_output(tpd_int_gpio_number, 1);
+		tpd_gpio_output(GTP_INT_PORT, 1);
 		msleep(5);
 #endif
 

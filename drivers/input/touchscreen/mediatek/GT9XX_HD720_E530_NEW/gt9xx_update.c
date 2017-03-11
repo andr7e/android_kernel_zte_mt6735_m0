@@ -276,16 +276,16 @@ s32 gup_enter_update_mode(struct i2c_client *client)
 		s32 retry = 0;
 		u8 rd_buf[3];
 
-		/* step1:RST output low last at least 2ms */
-		gpio_direction_output(tpd_rst_gpio_number, 0);
-		msleep(20);
+	/* step1:RST output low last at least 2ms */
+	tpd_gpio_output(GTP_RST_PORT, 0);
+	msleep(20);
 
-		/* step2:select I2C slave addr,INT:0--0xBA;1--0x28. */
-		gpio_direction_output(tpd_int_gpio_number, (client->addr == 0x14));
-		msleep(20);
+	/* step2:select I2C slave addr,INT:0--0xBA;1--0x28. */
+	tpd_gpio_output(GTP_INT_PORT, (client->addr == 0x14));
+	msleep(20);
 
-		/* step3:RST output high reset guitar */
-		gpio_direction_output(tpd_rst_gpio_number, 1);
+	/* step3:RST output high reset guitar */
+	tpd_gpio_output(GTP_RST_PORT, 1);
 
 		/* 20121211 modify start */
 		msleep(20);
@@ -323,7 +323,7 @@ s32 gup_enter_update_mode(struct i2c_client *client)
 
 void gup_leave_update_mode(void)
 {
-		gpio_direction_input(tpd_int_gpio_number);
+	tpd_gpio_as_int(GTP_INT_PORT);
 
 		GTP_DEBUG("[leave_update_mode]reset chip.");
 #ifdef CONFIG_GTP_COMPATIBLE_MODE
@@ -2285,18 +2285,18 @@ s32 gup_enter_update_mode_fl(struct i2c_client *client)
 		/* s32 retry = 0; */
 		/* u8 rd_buf[3]; */
 
-		/* step1:RST output low last at least 2ms */
-		gpio_direction_output(tpd_rst_gpio_number, 0);
-		msleep(20);
+	/* step1:RST output low last at least 2ms */
+	tpd_gpio_output(GTP_RST_PORT, 0);
+	msleep(2);
 
-		/* step2:select I2C slave addr,INT:0--0xBA;1--0x28. */
-		gpio_direction_output(tpd_int_gpio_number, (client->addr == 0x14));
-		msleep(20);
+	/* step2:select I2C slave addr,INT:0--0xBA;1--0x28. */
+	tpd_gpio_output(GTP_INT_PORT, (client->addr == 0x14));
+	msleep(5);
 
-		/* step3:RST output high reset guitar */
-		gpio_direction_output(tpd_rst_gpio_number, 1);
+	/* step3:RST output high reset guitar */
+	tpd_gpio_output(GTP_RST_PORT, 1);
 
-		msleep(20);
+		msleep(5);
 
 		/* select addr & hold ss51_dsp */
 		ret = gup_hold_ss51_dsp(client);
@@ -2900,21 +2900,21 @@ void gup_output_pulse(int t)
 		unsigned long flags;
 		/* s32 i; */
 
-		gpio_direction_output(tpd_int_gpio_number, 0);
-		udelay(10);
+	tpd_gpio_output(GTP_INT_PORT, 0);
+	udelay(10);
 
 		local_irq_save(flags);
 
-		gpio_direction_output(tpd_int_gpio_number, 1);
-		udelay(50);
-		gpio_direction_output(tpd_int_gpio_number, 0);
-		udelay(t - 50);
-		gpio_direction_output(tpd_int_gpio_number, 1);
+	tpd_gpio_output(GTP_INT_PORT, 1);
+	udelay(50);
+	tpd_gpio_output(GTP_INT_PORT, 0);
+	udelay(t - 50);
+	tpd_gpio_output(GTP_INT_PORT, 1);
 
 		local_irq_restore(flags);
 
-		udelay(20);
-		gpio_direction_output(tpd_int_gpio_number, 0);
+	udelay(20);
+	tpd_gpio_output(GTP_INT_PORT, 0);
 }
 
 static void gup_sys_clk_init(void)
@@ -2980,7 +2980,7 @@ u8 gup_clk_calibration(void)
 		gup_sys_clk_init();
 		gup_clk_calibration_pin_select(1);/* use GIO1 to do the calibration */
 
-		gpio_direction_output(tpd_int_gpio_number, 0);
+		tpd_gpio_output(GTP_INT_PORT, 0);
 
 		for (i = INIT_CLK_DAC; i < MAX_CLK_DAC; i++) {
 			if (tpd_halt) {
@@ -3000,25 +3000,25 @@ u8 gup_clk_calibration(void)
 			if (count > PULSE_LENGTH * 60)/* 60= 60Mhz * 1us */
 				break;
 #else
-			gpio_direction_output(tpd_int_gpio_number, 0);
+		tpd_gpio_output(GTP_INT_PORT, 0);
 
-			/* local_irq_save(flags); */
-			do_gettimeofday(&start);
-			gpio_direction_output(tpd_int_gpio_number, 1);
-			/* local_irq_restore(flags); */
+		/* local_irq_save(flags); */
+		do_gettimeofday(&start);
+		tpd_gpio_output(GTP_INT_PORT, 1);
+		/* local_irq_restore(flags); */
 
-			msleep(20);
-			gpio_direction_output(tpd_int_gpio_number, 0);
-			msleep(20);
+		msleep(20);
+		tpd_gpio_output(GTP_INT_PORT, 0);
+		msleep(20);
 
-			/* local_irq_save(flags); */
-			do_gettimeofday(&end);
-			gpio_direction_output(tpd_int_gpio_number, 1);
-			/* local_irq_restore(flags); */
+		/* local_irq_save(flags); */
+		do_gettimeofday(&end);
+		tpd_gpio_output(GTP_INT_PORT, 1);
+		/* local_irq_restore(flags); */
 
-			count = gup_clk_count_get();
-			udelay(20);
-			gpio_direction_output(tpd_int_gpio_number, 0);
+		count = gup_clk_count_get();
+		udelay(20);
+		tpd_gpio_output(GTP_INT_PORT, 0);
 
 			usec = end.tv_usec - start.tv_usec;
 			sec = end.tv_sec - start.tv_sec;
@@ -3056,8 +3056,8 @@ u8 gup_clk_calibration(void)
 		i2c_write_bytes(i2c_client_point, 0x41F9, &buf, 1);
 #endif
 
-		gpio_direction_input(tpd_int_gpio_number);
-		return i;
+	tpd_gpio_as_int(GTP_INT_PORT);
+	return i;
 }
 
 
