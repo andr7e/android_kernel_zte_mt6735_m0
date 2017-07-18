@@ -1871,7 +1871,7 @@ static void battery_update(struct battery_data *bat_data)
 
 	bat_data->BAT_TECHNOLOGY = POWER_SUPPLY_TECHNOLOGY_LION;
 	bat_data->BAT_HEALTH = POWER_SUPPLY_HEALTH_GOOD;
-	bat_data->BAT_batt_vol = BMT_status.bat_vol * 1000;
+	bat_data->BAT_batt_vol = BMT_status.bat_vol;
 	bat_data->BAT_batt_temp = BMT_status.temperature * 10;
 	bat_data->BAT_PRESENT = BMT_status.bat_exist;
 
@@ -2447,18 +2447,6 @@ static PMU_STATUS mt_battery_CheckChargerVoltage(void)
 			BMT_status.bat_charging_state = CHR_ERROR;
 			status = PMU_STATUS_FAIL;
 		}
-
-	/* sanford.lin 20160307 add start for recovery changing*/
-	#ifdef MTK_VOLTAGE_RECHARGE_SUPPORT
-		if((BMT_status.charger_protect_status == charger_OVER_VOL) && (BMT_status.charger_vol <= RECOVERY_CHARGING_VOLTAGE))
-		{
-			battery_xlog_printk(BAT_LOG_CRTI, "[BATTERY] recovery charging afer over voltage !! \r\n");
-			BMT_status.charger_protect_status = 0;
-			BMT_status.bat_charging_state = CHR_PRE;
-			status = PMU_STATUS_OK;
-		}
-	#endif
-	/* sanford.lin 20160307 add end*/
 	}
 
 	return status;
@@ -2602,10 +2590,6 @@ static void mt_battery_notify_ICharging_check(void)
 
 static void mt_battery_notify_VBatTemp_check(void)
 {
-#if defined(AEON_FOR_MALATA)
-	if (BMT_status.charger_exist == KAL_TRUE)
-	{
-#endif
 #if defined(BATTERY_NOTIFY_CASE_0002_VBATTEMP)
 
 	if (BMT_status.temperature >= batt_cust_data.max_charge_temperature) {
@@ -2627,19 +2611,6 @@ static void mt_battery_notify_VBatTemp_check(void)
 			    BMT_status.temperature);
 	}
 #endif
-#endif
-#if defined(AEON_FOR_MALATA)
-	}
-	if (BMT_status.temperature >= 60) {
-		g_BatteryNotifyCode |= 0x0040;
-		battery_log(BAT_LOG_CRTI, "[BATTERY] malata_bat_temp(%d) out of range(too high)\n",
-					BMT_status.temperature);
-	}
-	else if (BMT_status.temperature <= -20) {
-		g_BatteryNotifyCode |= 0x0080;
-		battery_log(BAT_LOG_CRTI, "[BATTERY] bat_temp(%d) out of range(too low)\n",
-					BMT_status.temperature);
-	}
 #endif
 
 	battery_log(BAT_LOG_FULL, "[BATTERY] BATTERY_NOTIFY_CASE_0002_VBATTEMP (%x)\n",
@@ -2735,11 +2706,7 @@ static void mt_battery_thermal_check(void)
 #if defined(CONFIG_MTK_JEITA_STANDARD_SUPPORT)
 		/* ignore default rule */
 #else
-	#if defined(AEON_FOR_MALATA)
-		if ((BMT_status.temperature <= -25) || (BMT_status.temperature >= 65)) {
-	#else
-		if (BMT_status.temperature >= 65) {
-	#endif
+		if (BMT_status.temperature >= 60) {
 #if defined(CONFIG_POWER_EXT)
 			battery_log(BAT_LOG_CRTI,
 				    "[BATTERY] CONFIG_POWER_EXT, no update battery update power down.\n");
@@ -2747,12 +2714,7 @@ static void mt_battery_thermal_check(void)
 			{
 				if ((g_platform_boot_mode == META_BOOT)
 				    || (g_platform_boot_mode == ADVMETA_BOOT)
-				    || (g_platform_boot_mode == ATE_FACTORY_BOOT)
-                                    || (g_platform_boot_mode == KERNEL_POWER_OFF_CHARGING_BOOT) 
-				#if defined(AEON_FOR_MALATA)
-					|| (g_platform_boot_mode == KERNEL_POWER_OFF_CHARGING_BOOT)
-				#endif
-				){
+				    || (g_platform_boot_mode == ATE_FACTORY_BOOT)) {
 					battery_log(BAT_LOG_FULL,
 						    "[BATTERY] boot mode = %d, bypass temperature check\n",
 						    g_platform_boot_mode);
@@ -3570,7 +3532,7 @@ void hv_sw_mode(void)
 int charger_hv_detect_sw_thread_handler(void *unused)
 {
 	ktime_t ktime;
-	unsigned int hv_voltage = 10500*1000;  //sanford.lin batt_cust_data.v_charger_max * 1000;
+	unsigned int hv_voltage = batt_cust_data.v_charger_max * 1000;
 
 
 	unsigned char cnt = 0;
@@ -4284,7 +4246,7 @@ static int battery_probe(struct platform_device *dev)
 		battery_main.BAT_PRESENT = 1;
 		battery_main.BAT_TECHNOLOGY = POWER_SUPPLY_TECHNOLOGY_LION;
 		battery_main.BAT_CAPACITY = 100;
-		battery_main.BAT_batt_vol = 4200000;
+		battery_main.BAT_batt_vol = 4200;
 		battery_main.BAT_batt_temp = 220;
 
 		g_bat_init_flag = KAL_TRUE;

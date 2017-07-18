@@ -111,10 +111,6 @@ int g_temp_status = TEMP_POS_10_TO_POS_45;
 kal_bool temp_error_recovery_chr_flag = KAL_TRUE;
 #endif
 
-#if defined(CONFIG_MTK_BQ24158_SUPPORT)
-extern unsigned int bq24158_reg_config_interface (unsigned char RegNum, unsigned char val);
-extern int aeon_gpio_set(const char *name);
-#endif
 /* ============================================================ // */
 /* function prototype */
 /* ============================================================ // */
@@ -1044,40 +1040,14 @@ static unsigned int charging_full_check(void)
 	unsigned int status;
 
 	battery_charging_control(CHARGING_CMD_GET_CHARGING_STATUS, &status);
-
-	printk(KERN_ERR"g_full_check_count=%d,status= %d,BMT_status.bat_vol=%d\n",
-		g_full_check_count,status,BMT_status.bat_vol);
-
-	if (status == KAL_TRUE)
-	{
+	if (status == KAL_TRUE) {
 		g_full_check_count++;
 		if (g_full_check_count >= FULL_CHECK_TIMES)
-		{
-#ifdef HIGH_BATTERY_VOLTAGE_SUPPORT
-			if(BMT_status.bat_vol<4250)
-#else
-			if(BMT_status.bat_vol<4100)
-#endif
-			{
-				status = KAL_FALSE;
-				g_full_check_count = 0;
-			}
-			else
-			{
-				status = KAL_TRUE;
-			}
-//			return KAL_TRUE;
-		}
+			return KAL_TRUE;
 		else
-		{
-			status = KAL_FALSE;
-//			return KAL_FALSE;
+			return KAL_FALSE;
 	} /*else {*/
-	}
-	else
-	{
 		g_full_check_count = 0;
-	}
 		return status;
 	/*}*/
 }
@@ -1127,8 +1097,7 @@ static void pchr_turn_on_charging(void)
 			battery_log(BAT_LOG_FULL,
 				    "USB_CURRENT_UNLIMITED, use batt_cust_data.ac_charger_current\n");
 #ifndef CONFIG_MTK_SWITCH_INPUT_OUTPUT_CURRENT_SUPPORT
-		/*sanford add on 20150908 for aeon*/
-		} else if (g_bcct_flag == 1 && BMT_status.temperature > (batt_cust_data.max_charge_temperature-10)) {
+		} else if (g_bcct_flag == 1) {
 			select_charging_current_bcct();
 
 			battery_log(BAT_LOG_FULL, "[BATTERY] select_charging_current_bcct !\n");
@@ -1255,14 +1224,9 @@ PMU_STATUS BAT_BatteryFullAction(void)
 	BMT_status.POSTFULL_charging_time = 0;
 	BMT_status.bat_in_recharging_state = KAL_FALSE;
 
-	if (BMT_status.bat_vol < batt_cust_data.recharging_voltage) {   //if (charging_full_check() == KAL_FALSE) {  //sanford.lin 20151116 for recharging bug
+	if (charging_full_check() == KAL_FALSE) {
 		battery_log(BAT_LOG_CRTI, "[BATTERY] Battery Re-charging !!\n\r");
-#if defined(CONFIG_MTK_BQ24158_SUPPORT)
-	        aeon_gpio_set("aeon_chr_ce1");
-                mdelay(10);
-	        aeon_gpio_set("aeon_chr_ce0");
-                bq24158_reg_config_interface(0x01,0xf8);
-#endif
+
 		BMT_status.bat_in_recharging_state = KAL_TRUE;
 		BMT_status.bat_charging_state = CHR_CC;
 #ifndef CONFIG_MTK_HAFG_20

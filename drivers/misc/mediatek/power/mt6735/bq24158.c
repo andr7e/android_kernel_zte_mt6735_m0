@@ -20,7 +20,7 @@
   *********************************************************/
 //#define bq24158_SLAVE_ADDR_WRITE   0xD4
 //#define bq24158_SLAVE_ADDR_Read    0xD5
-//#define BQ24158_BUSNUM 1
+//#define BQ24158_BUSNUM 2
 
 static struct i2c_client *new_client = NULL;
 static const struct i2c_device_id bq24158_i2c_id[] = {{"bq24158",0},{}};   
@@ -68,15 +68,15 @@ int bq24158_read_byte(unsigned char cmd, unsigned char *returnData)
 
     mutex_lock(&bq24158_i2c_access);
     
-    new_client->addr = ((new_client->addr) & I2C_MASK_FLAG) | I2C_WR_FLAG;    
-    //new_client->ext_flag=((new_client->ext_flag ) & I2C_MASK_FLAG ) | I2C_WR_FLAG | I2C_DIRECTION_FLAG;
+    //new_client->addr = ((new_client->addr) & I2C_MASK_FLAG) | I2C_WR_FLAG;    
+    new_client->ext_flag=((new_client->ext_flag ) & I2C_MASK_FLAG ) | I2C_WR_FLAG | I2C_DIRECTION_FLAG;
 
     cmd_buf[0] = cmd;
     ret = i2c_master_send(new_client, &cmd_buf[0], (1<<8 | 1));
     if (ret < 0) 
     {    
-        new_client->addr = new_client->addr & I2C_MASK_FLAG;
-        //new_client->ext_flag=0;
+        //new_client->addr = new_client->addr & I2C_MASK_FLAG;
+        new_client->ext_flag=0;
 
         mutex_unlock(&bq24158_i2c_access);
         return 0;
@@ -85,8 +85,8 @@ int bq24158_read_byte(unsigned char cmd, unsigned char *returnData)
     readData = cmd_buf[0];
     *returnData = readData;
 
-    new_client->addr = new_client->addr & I2C_MASK_FLAG;
-    //new_client->ext_flag=0;
+    // new_client->addr = new_client->addr & I2C_MASK_FLAG;
+    new_client->ext_flag=0;
     
     mutex_unlock(&bq24158_i2c_access);    
     return 1;
@@ -591,7 +591,10 @@ static int bq24158_driver_probe(struct i2c_client *client, const struct i2c_devi
     //---------------------
   //  bq24158_hw_init();
 
+#ifdef CONFIG_FOX_BQ24158_CHARGER_CUSTOM
     bq24158_reg_config_interface(0x06,0x47); // ISAFE = 1050mA, VSAFE = 4.34V
+#endif
+
     bq24158_dump_register();
     chargin_hw_init_done = KAL_TRUE;
 	
