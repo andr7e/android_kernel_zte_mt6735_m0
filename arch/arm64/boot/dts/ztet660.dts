@@ -19,8 +19,8 @@
 	};
 	led1:led@1 {
 		compatible = "mediatek,green";
-		led_mode = <3>;
-		data = <2>;
+		led_mode = <0>;
+		data = <1>;
 		pwm_config = <0 0 0 0 0>;
 	};
 	led2:led@2 {
@@ -41,10 +41,10 @@
 		data = <1>;
 		pwm_config = <0 0 0 0 0>;
 	};
-	led5:led@5 {
+	led5:led@5 { /* MT65XX_LED_MODE_PMIC, MT65XX_LED_PMIC_NLED_ISINK1 */
 		compatible = "mediatek,button-backlight";
-		led_mode = <0>;
-		data = <1>;
+		led_mode = <3>;
+		data = <2>;
 		pwm_config = <0 0 0 0 0>;
 	};
 	led6:led@6 {
