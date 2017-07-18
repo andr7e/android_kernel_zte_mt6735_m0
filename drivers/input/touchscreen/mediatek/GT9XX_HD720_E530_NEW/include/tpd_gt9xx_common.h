@@ -91,7 +91,7 @@ Do not config it here
 /* #define TPD_WARP_X *//*config in defconfig  as GTP_WARP_X_ON*/
 /* #define TPD_WARP_Y *//*config in defconfig  as GTP_WARP_Y_ON*/
 
-#define GTP_DEBUG_ON          1
+#define GTP_DEBUG_ON          0
 #define GTP_DEBUG_ARRAY_ON    0
 #define GTP_DEBUG_FUNC_ON     0
 
