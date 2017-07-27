@@ -97,7 +97,7 @@ extern int aeon_gpio_set(const char *name); //sanford.lin
 #define REG_FLAG1           0x0b
 
 #define I2C_STROBE_MAIN_SLAVE_7_BIT_ADDR    0x63
-#define I2C_STROBE_MAIN_CHANNEL             3
+#define I2C_STROBE_MAIN_CHANNEL             2
 
 #define DUTY_NUM   39
 
