@@ -313,7 +313,7 @@ extern wait_queue_head_t bp_waiter;
 extern s32 gup_load_calibration1(void);
 
 extern unsigned char gtp_hotknot_calibration_section0[];
-extern unsigned int touch_irq;
+extern unsigned int gt_touch_irq;
 extern unsigned int tpd_rst_gpio_number;
 extern unsigned int tpd_int_gpio_number;
 

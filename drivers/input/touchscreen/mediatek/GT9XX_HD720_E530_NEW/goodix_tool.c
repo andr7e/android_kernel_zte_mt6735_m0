@@ -415,13 +415,13 @@ static ssize_t goodix_tool_write(struct file *filp, const char __user *buff, siz
 
 		return cmd_head.data_len + CMD_HEAD_LENGTH;
 	} else if (7 == cmd_head.wr) {/* disable irq! */
-		disable_irq(touch_irq);
+		disable_irq(gt_touch_irq);
 #ifdef CONFIG_GTP_ESD_PROTECT
 	gtp_esd_switch(i2c_client_point, SWITCH_OFF);
 #endif
 	return CMD_HEAD_LENGTH;
 	} else if (9 == cmd_head.wr) {/* enable irq! */
-		enable_irq(touch_irq);
+		enable_irq(gt_touch_irq);
 #ifdef CONFIG_GTP_ESD_PROTECT
 		gtp_esd_switch(i2c_client_point, SWITCH_ON);
 #endif
@@ -748,13 +748,13 @@ static ssize_t hotknot_write(struct file *filp, const char __user *buff, size_t 
 
 		return cmd_head2.data_len + CMD_HEAD_LENGTH;
 	} else if (7 == cmd_head2.wr)/* disable irq! */ {
-		disable_irq(touch_irq);
+		disable_irq(gt_touch_irq);
 #ifdef CONFIG_GTP_ESD_PROTECT
 		gtp_esd_switch(i2c_client_point, SWITCH_OFF);
 #endif
 		return CMD_HEAD_LENGTH;
 	} else if (9 == cmd_head2.wr) /* enable irq! */ {
-		enable_irq(touch_irq);
+		enable_irq(gt_touch_irq);
 #ifdef CONFIG_GTP_ESD_PROTECT
 		gtp_esd_switch(i2c_client_point, SWITCH_ON);
 #endif

@@ -1986,7 +1986,7 @@ s32 gup_update_proc(void *dir)
 
 		gtp_loading_fw = 1;
 
-		disable_irq(touch_irq);
+		disable_irq(gt_touch_irq);
 #ifdef CONFIG_GTP_ESD_PROTECT
 		gtp_esd_switch(i2c_client_point, SWITCH_OFF);
 #endif
@@ -2085,7 +2085,7 @@ update_fail:
 #endif
 
 file_fail:
-	enable_irq(touch_irq);
+	enable_irq(gt_touch_irq);
 
 	if (update_msg.file && !IS_ERR(update_msg.file)) {
 		if (update_msg.old_fs)
@@ -2705,7 +2705,7 @@ s32 gup_fw_download_proc(void *dir, u8 dwn_mode)
 			goto file_fail;
 		}
 
-		disable_irq(touch_irq);
+		disable_irq(gt_touch_irq);
 		if (NULL != dir) {
 #ifdef CONFIG_GTP_ESD_PROTECT
 			gtp_esd_switch(i2c_client_point, SWITCH_OFF);
@@ -2751,7 +2751,7 @@ s32 gup_fw_download_proc(void *dir, u8 dwn_mode)
 #endif
 		}
 		show_len = 100;
-		enable_irq(touch_irq);
+		enable_irq(gt_touch_irq);
 		return SUCCESS;
 
 download_fail:
@@ -2764,7 +2764,7 @@ download_fail:
 
 file_fail:
 		show_len = 200;
-		enable_irq(touch_irq);
+		enable_irq(gt_touch_irq);
 		return FAIL;
 }
 
@@ -3217,7 +3217,7 @@ s32 gup_load_calibration(u8 *data, s32 length, u8 need_check)
 		u8 bank = 0;
 
 		/* disable irq & ESD protect */
-		disable_irq(touch_irq);
+		disable_irq(gt_touch_irq);
 #ifdef CONFIG_GTP_ESD_PROTECT
 		gtp_esd_switch(i2c_client_point, SWITCH_OFF);
 #endif
@@ -3248,7 +3248,7 @@ gup_load_calibration_exit:
 		gtp_esd_switch(i2c_client_point, SWITCH_ON);
 #endif
 #endif
-		enable_irq(touch_irq);
+		enable_irq(gt_touch_irq);
 		return ret;
 }
 

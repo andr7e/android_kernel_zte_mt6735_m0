@@ -69,7 +69,7 @@ static s8 gtp_enter_doze(struct i2c_client *client);
 #ifdef CONFIG_GTP_CHARGER_SWITCH
 static void gtp_charger_switch(s32 dir_update);
 #endif
-unsigned int touch_irq = 0;
+unsigned int gt_touch_irq = 0;
 
 #if (defined(TPD_WARP_START) && defined(TPD_WARP_END))
 static int tpd_wb_start_local[TPD_WARP_CNT] = TPD_WARP_START;
@@ -1751,8 +1751,8 @@ static s32 tpd_i2c_probe(struct i2c_client *client, const struct i2c_device_id *
 
 	node = of_find_matching_node(NULL, touch_of_match);
 	if (node) {
-		touch_irq = irq_of_parse_and_map(node, 0);
-		ret = request_irq(touch_irq,
+		gt_touch_irq = irq_of_parse_and_map(node, 0);
+		ret = request_irq(gt_touch_irq,
 				  (irq_handler_t)tpd_eint_interrupt_handler,
 				  !int_type ? IRQF_TRIGGER_RISING :
 				  IRQF_TRIGGER_FALLING,
@@ -1763,7 +1763,7 @@ static s32 tpd_i2c_probe(struct i2c_client *client, const struct i2c_device_id *
 		}
 	}
 	/* mt_eint_unmask(CUST_EINT_TOUCH_PANEL_NUM); */
-	enable_irq(touch_irq);
+	enable_irq(gt_touch_irq);
 
 
 #ifdef CONFIG_GTP_ESD_PROTECT
@@ -1826,7 +1826,7 @@ void force_reset_guitar(void)
 
 	GTP_INFO("force_reset_guitar");
 	gtp_resetting = 1;
-	disable_irq(touch_irq);
+	disable_irq(gt_touch_irq);
 
 	tpd_gpio_output(GTP_RST_PORT, 0);
 	tpd_gpio_output(GTP_INT_PORT, 0);
@@ -1845,7 +1845,7 @@ void force_reset_guitar(void)
 	msleep(30);
 
 
-	enable_irq(touch_irq);
+	enable_irq(gt_touch_irq);
 
 	for (i = 0; i < 5; i++) {
 		/* Reset Guitar */
@@ -2157,7 +2157,7 @@ static int touch_event_handler(void *unused)
 
 		set_current_state(TASK_RUNNING);
 		mutex_lock(&i2c_access);
-		disable_irq(touch_irq);
+		disable_irq(gt_touch_irq);
 #ifdef CONFIG_GTP_CHARGER_SWITCH
 		gtp_charger_switch(0);
 #endif
@@ -2297,7 +2297,7 @@ static int touch_event_handler(void *unused)
 #else
 			{
 #endif
-				enable_irq(touch_irq);
+				enable_irq(gt_touch_irq);
 				mutex_unlock(&i2c_access);
 				GTP_ERROR("buffer not ready");
 				continue;
@@ -2498,7 +2498,7 @@ exit_work_func:
 				GTP_INFO("I2C write end_cmd	error!");
 
 		}
-		enable_irq(touch_irq);
+		enable_irq(gt_touch_irq);
 		if (mutex_is_locked(&i2c_access))
 			mutex_unlock(&i2c_access);
 
@@ -2783,9 +2783,9 @@ static s8 gtp_wakeup_sleep(struct i2c_client *client)
 
 		doze_status = DOZE_DISABLED;
 
-		disable_irq(touch_irq);
+		disable_irq(gt_touch_irq);
 		gtp_reset_guitar(client, 20);
-		enable_irq(touch_irq);
+		enable_irq(gt_touch_irq);
 #else
 
 		tpd_gpio_output(GTP_INT_PORT, 1);
@@ -2853,7 +2853,7 @@ static void tpd_suspend(struct device *h)
 #ifdef CONFIG_GTP_GESTURE_WAKEUP
 		ret = gtp_enter_doze(i2c_client_point);
 #else
-		disable_irq(touch_irq);
+		disable_irq(gt_touch_irq);
 		ret = gtp_enter_sleep(i2c_client_point);
 		if (ret < 0)
 			GTP_ERROR("GTP early suspend failed.");
@@ -2913,7 +2913,7 @@ static void tpd_resume(struct device *h)
 #else
 		mutex_lock(&i2c_access);
 		tpd_halt = 0;
-		enable_irq(touch_irq);
+		enable_irq(gt_touch_irq);
 		mutex_unlock(&i2c_access);
 #endif
 
@@ -2946,7 +2946,7 @@ static void tpd_off(void)
 	GTP_INFO("GTP enter sleep!");
 
 	tpd_halt = 1;
-	disable_irq(touch_irq);
+	disable_irq(gt_touch_irq);
 }
 
 static void tpd_on(void)
@@ -2967,7 +2967,7 @@ static void tpd_on(void)
 	if (ret < 0)
 		GTP_ERROR("GTP later resume failed.");
 
-	enable_irq(touch_irq);
+	enable_irq(gt_touch_irq);
 	tpd_halt = 0;
 }
 

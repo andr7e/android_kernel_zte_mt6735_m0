@@ -1,7 +1,7 @@
 #
 # Touchscreen driver configuration
 #
-if TOUCHSCREEN_MTK_SYNAPTICS_S2174
+if TOUCHSCREEN_AEON_SYNAPTICS_S2174_E535
 
 
 endif
