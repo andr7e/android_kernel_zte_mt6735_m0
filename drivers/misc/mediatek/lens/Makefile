@@ -59,6 +59,7 @@ obj-$(CONFIG_MTK_LENS_LC898212XDAF_SUPPORT)  += common/lc898212xdaf/
 obj-$(CONFIG_MTK_LENS_LC898122AF_SUPPORT)  += common/lc898122af/
 obj-$(CONFIG_MTK_LENS_AD5820AF_SUPPORT)    += common/ad5820af/
 obj-$(CONFIG_MTK_LENS_DW9763AF_SUPPORT)    += common/dw9763af/
+obj-$(CONFIG_MTK_LENS_OV13850AF_SUPPORT) += common/ov13850af/
 
 endif
 #sanford.lin 20150205 end

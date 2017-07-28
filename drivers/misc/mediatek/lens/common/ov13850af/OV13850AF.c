@@ -1,5 +1,5 @@
 /*
- * DW9718AF voice coil motor driver
+ * OV13850AF voice coil motor driver
  *
  *
  */
@@ -11,7 +11,7 @@
 
 #include "lens_info.h"
 
-#define AF_DRVNAME "DW9718AF_DRV"
+#define AF_DRVNAME "OV13850AF_DRV"
 #define AF_I2C_SLAVE_ADDR        0x19
 
 #define AF_DEBUG
@@ -59,7 +59,7 @@ static u8 read_data(u8 addr)
 	return get_byte;
 }
 
-static int s4DW9718AF_ReadReg(unsigned short *a_pu2Result)
+static int s4OV13850AF_ReadReg(unsigned short *a_pu2Result)
 {
 	*a_pu2Result = (read_data(0x02) << 8) + (read_data(0x03) & 0xff);
 
@@ -130,7 +130,7 @@ static inline int moveAF(unsigned long a_u4Position)
 		unsigned short InitPos;
 
 		initdrv();
-		ret = s4DW9718AF_ReadReg(&InitPos);
+		ret = s4OV13850AF_ReadReg(&InitPos);
 
 		if (ret == 0) {
 			LOG_INF("Init Pos %6d\n", InitPos);
@@ -188,7 +188,7 @@ static inline int setAFMacro(unsigned long a_u4Position)
 }
 
 /* ////////////////////////////////////////////////////////////// */
-long DW9718AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command, unsigned long a_u4Param)
+long OV13850AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command, unsigned long a_u4Param)
 {
 	long i4RetValue = 0;
 
@@ -223,7 +223,7 @@ long DW9718AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command, unsigned l
 /* 2.Shut down the device on last close. */
 /* 3.Only called once on last time. */
 /* Q1 : Try release multiple times. */
-int DW9718AF_Release(struct inode *a_pstInode, struct file *a_pstFile)
+int OV13850AF_Release(struct inode *a_pstInode, struct file *a_pstFile)
 {
 	LOG_INF("Start\n");
 
@@ -243,7 +243,7 @@ int DW9718AF_Release(struct inode *a_pstInode, struct file *a_pstFile)
 	return 0;
 }
 
-void DW9718AF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient, spinlock_t *pAF_SpinLock, int *pAF_Opened)
+void OV13850AF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient, spinlock_t *pAF_SpinLock, int *pAF_Opened)
 {
 	g_pstAF_I2Cclient = pstAF_I2Cclient;
 	g_pAF_SpinLock = pAF_SpinLock;

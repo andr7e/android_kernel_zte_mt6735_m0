@@ -93,6 +93,10 @@ static stAF_DrvList g_stAF_DrvList[MAX_NUM_OF_LENS] = {
 	{1, AFDRV_AD5820AF, AD5820AF_SetI2Cclient, AD5820AF_Ioctl, AD5820AF_Release},
 	#endif
 
+	#ifdef CONFIG_MTK_LENS_OV13850AF_SUPPORT
+	{1, AFDRV_OV13850AF, OV13850AF_SetI2Cclient, OV13850AF_Ioctl, OV13850AF_Release},
+	#endif
+
 #else
 
 	#ifdef CONFIG_MTK_LENS_BU6424AF_SUPPORT
@@ -130,6 +134,10 @@ static stAF_DrvList g_stAF_DrvList[MAX_NUM_OF_LENS] = {
 	#endif
 	#ifdef CONFIG_MTK_LENS_AD5820AF_SUPPORT
 	{1, AFDRV_AD5820AF, AD5820AF_SetI2Cclient, AD5820AF_Ioctl, AD5820AF_Release},
+	#endif
+
+	#ifdef CONFIG_MTK_LENS_OV13850AF_SUPPORT
+	{1, AFDRV_OV13850AF, OV13850AF_SetI2Cclient, OV13850AF_Ioctl, OV13850AF_Release},
 	#endif
 #endif
 /* sanford.lin add end on 20160308*/

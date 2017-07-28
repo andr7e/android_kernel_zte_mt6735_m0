@@ -251,3 +251,12 @@ config MTK_LENS_DW9763AF_SUPPORT
     This config is used to enable the corresponding
     lens driver for the camera sensor module
     Set as y if the driver is used in this project
+
+config MTK_LENS_OV13850AF_SUPPORT
+  bool "OV13850AF Lens Driver"
+  default n
+  help
+    OV13850AF Lens Driver
+    This config is used to enable the corresponding
+    lens driver for the camera sensor module
+    Set as y if the driver is used in this project

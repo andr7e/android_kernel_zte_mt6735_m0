@@ -163,6 +163,12 @@ extern long AD5820AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command, uns
 extern int AD5820AF_Release(struct inode *a_pstInode, struct file *a_pstFile);
 #endif
 
+#ifdef CONFIG_MTK_LENS_OV13850AF_SUPPORT
+extern void OV13850AF_SetI2Cclient(struct i2c_client *pstAF_I2Cclient, spinlock_t *pAF_SpinLock, int *pAF_Opened);
+extern long OV13850AF_Ioctl(struct file *a_pstFile, unsigned int a_u4Command, unsigned long a_u4Param);
+extern int OV13850AF_Release(struct inode *a_pstInode, struct file *a_pstFile);
+#endif
+
 #endif
 /* sanford.lin add end on 20160308*/
 
