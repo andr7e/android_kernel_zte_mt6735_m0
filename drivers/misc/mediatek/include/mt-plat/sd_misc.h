@@ -13,10 +13,10 @@
 //#include "mt_sd.h"
 
 #ifndef FPGA_PLATFORM
-extern void msdc_set_driving(struct msdc_host *host, struct msdc_hw *hw, bool sd_18);
+//extern void msdc_set_driving(struct msdc_host *host, struct msdc_hw *hw, bool sd_18);
 #endif
 /* void msdc_dump_padctl(struct msdc_host *host); */
-extern u32 msdc_host_mode[HOST_MAX_NUM];
+//extern u32 msdc_host_mode[HOST_MAX_NUM];
 extern u32 msdc_host_mode2[HOST_MAX_NUM];
 
 extern int mmc_switch(struct mmc_card *card, u8 set, u8 index, u8 value,
