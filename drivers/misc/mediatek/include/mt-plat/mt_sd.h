@@ -3,7 +3,7 @@
 
 #include <linux/bitops.h>
 #include <linux/mmc/host.h>
-#include <mach/sync_write.h>
+//#include <mach/sync_write.h>
 #include <mach/mt_reg_base.h>
 #include <mach/board.h>
 
