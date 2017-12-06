@@ -5,7 +5,7 @@
 #include <linux/mmc/host.h>
 //#include <mach/sync_write.h>
 //#include <mach/mt_reg_base.h>
-#include <mach/board.h>
+//#include <mach/board.h>
 
 #define MTK_MSDC_USE_CMD23
 #if defined(CONFIG_MTK_EMMC_CACHE) && defined(MTK_MSDC_USE_CMD23)
