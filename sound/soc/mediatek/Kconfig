@@ -42,6 +42,13 @@ config MTK_SPEAKER
 	default n
 	help
 	  If you say Y, enable MTK_SPEAKER_AMP
+
+config MTK_SPEAKER_MODE_AB
+	bool "MTK_SPEAKER_MODE_AB"
+	default n
+	help
+	  If you say Y, enable MTK_SPEAKER_MODE_AB
+
 config MTK_NXP_TFA9890
     bool "MTK_NXP_TFA9890"
 	default n

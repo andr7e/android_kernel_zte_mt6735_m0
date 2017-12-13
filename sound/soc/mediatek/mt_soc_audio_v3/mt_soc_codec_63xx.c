@@ -141,7 +141,12 @@ static unsigned int pin_mode_extspkamp, pin_mode_extspkamp_2, pin_mode_vowclk, p
 
 
 #ifdef CONFIG_MTK_SPEAKER
+#ifdef CONFIG_MTK_SPEAKER_MODE_AB
+static int Speaker_mode = AUDIO_SPEAKER_MODE_AB;
+#else
 static int Speaker_mode = AUDIO_SPEAKER_MODE_D;
+#endif
+
 static unsigned int Speaker_pga_gain = 1;	/* default 0Db. */
 static bool mSpeaker_Ocflag;
 #endif
